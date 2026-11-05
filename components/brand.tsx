@@ -169,9 +169,9 @@ export function FrameIllustration() {
               fill="#fafafa" stroke="currentColor" strokeWidth=".85" />
             <DoodleScene scene={0} x={83} y={81} width={187} height={99} />
           </g>
-          <path d="M62 32 Q65 30 69 32 L68 62 Q65 65 62 62 Z"
+          <path d="M62 32 Q65 30 69 32 L68 76 Q65 79 62 76 Z"
             fill="var(--paper)" stroke="currentColor" strokeWidth="1" />
-          <path d="M65 34 L65 43 M65 52 L65 60" stroke="currentColor" strokeWidth=".7" />
+          <path d="M65 34 L65 43 M65 52 L65 74" stroke="currentColor" strokeWidth=".7" />
           <circle cx="65" cy="48" r="2.5" fill="var(--paper)" stroke="currentColor" strokeWidth=".85" />
         </g>
       </svg>

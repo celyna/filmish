@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+export const grainEffects = ["Off", "Weak", "Strong"] as const;
 const tone = z.int().min(-2).max(4);
 const detail = z.int().min(-4).max(4);
 const shift = z.int().min(-9).max(9);
@@ -25,7 +26,7 @@ const xt2Settings = z.strictObject({
   color: detail.nullable(),
   sharpness: detail,
   noiseReduction: detail,
-  grain: z.enum(["Off", "Weak", "Strong"]),
+  grain: z.enum(grainEffects),
 }).refine(({ simulation, color }) => isMonochrome(simulation) === (color === null), {
   path: ["color"], message: "Color must be omitted from monochrome camera output.",
 });

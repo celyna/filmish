@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { cameras, settingRows, type CameraId } from "@/lib/camera";
+import { cameras, grainEffects, settingRows, type CameraId } from "@/lib/camera";
 import { changesFrom, feedbackOptions, refine, type Feedback } from "@/lib/adaptation";
 import type { RecommendationResult } from "@/lib/recipe";
 import { imageTypes } from "@/lib/upload";
@@ -198,6 +198,7 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
           </ul>
           <p>{result.analysis.description}</p>
           <p className="note">{result.analysis.mode === "pixels" ? "Pixel analysis" : "Vision AI + pixel analysis"} · {result.catalog === "fixtures" ? "Local fixture catalog" : "Supabase catalog"}</p>
+          <p className="note">Matching compares color and tones. Grain in your reference photo isn’t assessed yet.</p>
           {!recipe && <p className="no-match">{result.reason}</p>}
           {recipe && settings && <>
             <div className="recipe-heading">
@@ -220,6 +221,16 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
             {changes.length ? <ul className="changes">{changes.map(change =>
               <li key={change.label}>{change.label} <span>{change.original} → {change.value}</span></li>)}</ul>
               : <p className="note">Using the original settings.</p>}
+            <div className="grain-control">
+              <label htmlFor="grain-effect">Grain effect</label>
+              <select id="grain-effect" value={settings.grain} onChange={event => {
+                setRevised(cameras[camera].settings.parse({ ...settings, grain: event.target.value }));
+                setStatus("Grain preference applied.");
+              }}>
+                {grainEffects.map(grain => <option key={grain} value={grain}>{grain}</option>)}
+              </select>
+            </div>
+            <p className="note">Starts with the base recipe’s grain setting. Choose the amount you prefer.</p>
             <div className="feedback" aria-label="Refine recipe">
               {Object.entries(feedbackOptions).map(([id, label]) => <button key={id} className="secondary"
                 disabled={settings.color === null && ["vivid", "muted"].includes(id)}
