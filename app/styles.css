@@ -1,0 +1,131 @@
+:root {
+  color-scheme: light;
+  --paper: #ffffff;
+  --ink: #161616;
+  --muted: #555555;
+  --rule: #dedede;
+  --accent: #161616;
+  --body-serif: "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 1rem/1.7 var(--body-serif);
+  text-transform: lowercase;
+}
+main { width: min(100% - 2.5rem, 37rem); margin: 0 auto; padding: clamp(3rem, 9vh, 6.5rem) 0 3rem; }
+.wordmark {
+  view-transition-name: film-title;
+  position: relative;
+  width: fit-content;
+  font: 400 clamp(2.8rem, 10vw, 3.7rem)/1.2 "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  letter-spacing: -.035em;
+  text-align: center;
+  margin: 0 auto clamp(2.6rem, 8vh, 5.5rem);
+}
+.typing-cursor {
+  position: absolute;
+  top: .19em;
+  bottom: .14em;
+  width: 1px;
+  margin-left: .15em;
+  background: var(--accent);
+  animation: cursor-blink 1.2s steps(1, end) infinite;
+}
+@keyframes cursor-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .typing-cursor { animation: none; } }
+main:has(.upload) { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-block: 3rem; }
+main:has(.upload) .wordmark { margin-bottom: clamp(2.2rem, 6vh, 4rem); }
+button, select { font: inherit; color: inherit; }
+button, select, option, input, textarea { text-transform: lowercase; }
+button { cursor: pointer; }
+button:disabled { cursor: default; opacity: .58; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.upload { display: grid; justify-items: center; width: min(100%, 23rem); margin: auto; padding: 0 0 1.5rem; border: 0; border-radius: 0; background: none; transition: background .2s; }
+.upload:hover .frame-illustration, .upload.dragging .frame-illustration { color: var(--ink); }
+.studio { position: relative; }
+.home-button { position: absolute; top: -2.5rem; left: 0; }
+.hanging-art { position: relative; display: block; width: min(100%, 20rem); color: #333333; view-transition-name: film-preview; }
+.clothesline { color: #333; view-transition-name: film-line; }
+.clothesline { position: absolute; top: 0; left: 50%; width: 100vw; height: 90px; transform: translateX(-50%); pointer-events: none; }
+.clothesline > svg:first-child { display: block; width: 100%; height: 90px; overflow: visible; }
+.line-clip { position: absolute; width: 15px; height: 32px; top: 27px; }
+.line-clip-left { top: 0; left: 18%; transform: rotate(-9deg); }
+.line-clip-right { top: 42px; right: 18%; transform: rotate(4deg); }
+.outer-strip { position: absolute; top: 41px; width: clamp(54px, 10vw, 100px); height: clamp(290px, 36vw, 365px); pointer-events: auto; cursor: default; }
+.outer-strip-left { top: 14px; left: 18%; transform: translateX(-50%); }
+.outer-strip-right { top: 56px; left: 82%; transform: translateX(-50%); height: clamp(320px, 39vw, 395px); }
+.outer-strip > svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.frame-illustration { position: relative; display: block; width: 100%; color: inherit; transition: color .2s; }
+.upload-title {
+  display: block;
+  padding: .8rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font: 400 .9rem/1.4 Arial, Helvetica, sans-serif;
+}
+.upload:hover .upload-title, .upload.dragging .upload-title { background: #f3f3f3; }
+.upload-note, .note, .status { color: var(--muted); font: .8rem/1.65 var(--body-serif); }
+.upload-note { margin-top: .75rem; color: var(--ink); font: 400 .7rem/1.5 Arial, Helvetica, sans-serif; }
+.studio:has(.photo) { padding-top: 60px; }
+.studio:has(.photo) .outer-strip { width: clamp(24px, 6vw, 70px); top: 17px; }
+.studio:has(.photo) .outer-strip-left { top: -13px; left: 4%; }
+.studio:has(.photo) .outer-strip-right { top: 48px; left: 96%; }
+.studio:has(.photo) .line-clip { top: 0; }
+.studio:has(.photo) .line-clip-left { top: -30px; left: calc(4% - 7px); }
+.studio:has(.photo) .line-clip-right { top: 31px; right: calc(4% - 7px); }
+.photo { position: relative; width: min(100% - 2.5rem, 30rem); margin: 0 auto; padding: .65rem .65rem .35rem; background: var(--paper); border: 1px solid var(--rule); view-transition-name: film-preview; }
+.photo::before { content: ""; position: absolute; z-index: 1; top: -15px; left: calc(50% - 4px); width: 7px; height: 27px; border: 1px solid var(--ink); border-radius: 2px; background: var(--paper); transform: rotate(7deg); }
+.photo img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; background: #f5f5f5; }
+figcaption { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .75rem .25rem .35rem; }
+.eyebrow { display: block; color: var(--accent); font: 400 .75rem/1.4 var(--body-serif); letter-spacing: .095em; }
+.camera-panel, .results { margin-top: 1.8rem; }
+.camera-panel, .results { animation: reveal-details .6s ease-out both; }
+@keyframes reveal-details { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+::view-transition-group(film-preview), ::view-transition-group(film-title), ::view-transition-group(film-line) { animation-duration: .75s; animation-timing-function: cubic-bezier(.22, 1, .36, 1); }
+::view-transition-old(film-preview), ::view-transition-new(film-preview) { height: 100%; object-fit: contain; }
+@media (prefers-reduced-motion: reduce) {
+  .camera-panel, .results { animation: none; }
+  ::view-transition-group(*) { animation-duration: 0s; }
+}
+.camera-controls { display: grid; gap: .6rem; margin-top: .6rem; }
+select, .primary, .secondary, .text-button { min-height: 44px; font: 400 .85rem/1.5 Arial, Helvetica, sans-serif; }
+select, .primary, .secondary { border: 1px solid var(--ink); border-radius: 999px; padding: .55rem .8rem; }
+select {
+  appearance: none;
+  padding-right: 2.75rem;
+  background-color: var(--paper);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='m1 1 5 5 5-5' stroke='%23161616' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+}
+.primary { background: transparent; color: var(--ink); border-color: var(--ink); }
+.primary span { margin-left: .3rem; }
+.secondary { background: transparent; }
+.primary:hover:not(:disabled), .secondary:hover:not(:disabled), .text-button:hover, a:hover { background: #f3f3f3; }
+.text-button { padding: .45rem .8rem; color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; background: transparent; }
+.results { border-top: 1px solid var(--rule); padding-top: 1.2rem; }
+.results p { margin: .55rem 0; }
+.palette { display: flex; gap: .35rem; padding: 0; margin: .65rem 0; list-style: none; }
+.palette li { width: 1.65rem; height: 1.65rem; border: 1px solid #2b272233; border-radius: 50%; }
+.recipe-heading { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: end; margin-top: 1.7rem; }
+h2 { font-size: clamp(1.9rem, 6vw, 2.5rem); line-height: 1.05; font-weight: 400; margin: .35rem 0 0; }
+h3 { font-size: 1.14rem; font-weight: 400; margin: 1.4rem 0 .2rem; }
+a { display: inline-block; padding: .25rem .65rem; color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; font: .75rem/1.5 Arial, Helvetica, sans-serif; text-decoration: none; }
+.settings { margin: 1rem 0; border-top: 1px solid var(--rule); }
+.settings div { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; padding: .45rem 0; border-bottom: 1px solid var(--rule); }
+dt { color: var(--muted); }
+dd { margin: 0; text-align: right; font: .9rem/1.85 var(--body-serif); }
+.changes { margin: .45rem 0; padding-left: 1rem; }
+.changes span { color: var(--muted); font: .9rem var(--body-serif); }
+.feedback { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .75rem; }
+.error { color: #8b321d; }
+.studio:has(.upload) .error { text-align: center; }
+.studio:has(.upload) .preparing { text-align: center; }
+.no-match { border: 1px solid var(--rule); padding: .8rem; }
+.status { min-height: 1.3rem; }
+@media (min-width: 35rem) { .camera-controls { grid-template-columns: 1fr auto; } }
