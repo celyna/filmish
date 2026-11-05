@@ -149,30 +149,32 @@ export function Clothesline() {
 }
 
 export function FrameIllustration() {
-  const { film, followPointer, reset } = useFilmSwing(65, 45);
+  const { film, followPointer, reset } = useFilmSwing(110, 45);
   return (
     <span className="hanging-art" aria-hidden="true" onPointerMove={followPointer}
       onPointerLeave={reset} onPointerCancel={reset}>
 
       <svg className="frame-illustration" viewBox="0 0 320 285" fill="none">
-        <g transform="rotate(-8 65 45)">
-          <g ref={film}>
-            <path d="M60 52 Q174 50 291 53 L292 207 Q176 210 60 207 Z"
-              fill="var(--paper)" stroke="currentColor" strokeWidth="1.15" />
-            {[74, 99, 124, 149, 174, 199, 224, 249, 274].map(x => (
-              <g key={x} stroke="currentColor" strokeWidth=".75" opacity=".65">
-                <rect x={x} y="59" width="11" height="8" rx="1.8" />
-                <rect x={x} y="193" width="11" height="8" rx="1.8" />
-              </g>
-            ))}
-            <path d="M76 76 Q176 74 277 77 L277 184 Q176 186 76 183 Z"
-              fill="#fafafa" stroke="currentColor" strokeWidth=".85" />
-            <DoodleScene scene={0} x={83} y={81} width={187} height={99} />
+        <g className="center-film-placement">
+          <g transform="rotate(-8 110 45)">
+            <g ref={film}>
+              <path d="M60 52 Q174 50 291 53 L292 207 Q176 210 60 207 Z"
+                fill="var(--paper)" stroke="currentColor" strokeWidth="1.15" />
+              {[74, 99, 124, 149, 174, 199, 224, 249, 274].map(x => (
+                <g key={x} stroke="currentColor" strokeWidth=".75" opacity=".65">
+                  <rect x={x} y="59" width="11" height="8" rx="1.8" />
+                  <rect x={x} y="193" width="11" height="8" rx="1.8" />
+                </g>
+              ))}
+              <path d="M76 76 Q176 74 277 77 L277 184 Q176 186 76 183 Z"
+                fill="#fafafa" stroke="currentColor" strokeWidth=".85" />
+              <DoodleScene scene={0} x={83} y={81} width={187} height={99} />
+            </g>
+            <path d="M107 32 Q110 30 114 32 L113 76 Q110 79 107 76 Z"
+              fill="var(--paper)" stroke="currentColor" strokeWidth="1" />
+            <path d="M110 34 L110 43 M110 52 L110 74" stroke="currentColor" strokeWidth=".7" />
+            <circle cx="110" cy="48" r="2.5" fill="var(--paper)" stroke="currentColor" strokeWidth=".85" />
           </g>
-          <path d="M62 32 Q65 30 69 32 L68 76 Q65 79 62 76 Z"
-            fill="var(--paper)" stroke="currentColor" strokeWidth="1" />
-          <path d="M65 34 L65 43 M65 52 L65 74" stroke="currentColor" strokeWidth=".7" />
-          <circle cx="65" cy="48" r="2.5" fill="var(--paper)" stroke="currentColor" strokeWidth=".85" />
         </g>
       </svg>
     </span>
