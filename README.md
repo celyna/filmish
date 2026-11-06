@@ -17,15 +17,44 @@ Run `npm run build` to verify a production build. Use `npm start` to serve it.
 
 ## Architecture
 
-| Location | Responsibility |
-| --- | --- |
-| `app/` and `components/` | Next.js App Router page and progressive upload, results, refinement and copy. The replaceable wordmark and hand-drawn frame live in `components/brand.tsx`. |
-| `lib/resize-image.ts` | Prepare the image locally with browser decoding and canvas. Reject unsupported or corrupt images, cap input size, and avoid enlarging small images. |
-| `lib/analysis.ts` and `lib/vision.ts` | Decode, orient and downsample with Sharp. Derive a palette, average chroma, red–blue cast and 10th/90th percentile luminance. Optional vision adds structured tags and a short description. |
-| `lib/catalog.ts` and `supabase/migrations/` | Swap the local catalog for a server-side Supabase Data API query. Normalize sources, creators, recipes, model/generation relationships, model-specific settings, feature profiles, tags and separately authorized images. |
-| `lib/camera.ts` | Camera capability registry. Strict schemas reject unknown controls and invalid values. The X-T2 profile uses discrete Kelvin steps, integer adjustments, monochrome variants and fixed grain strengths. |
-| `lib/matching.ts` | Filter incompatible settings and monochrome/color mismatches. Rank using weighted scalar differences and tag overlap. Return one candidate or a no-match result. |
-| `lib/adaptation.ts` | User-directed one-step adjustments, applied locally and validated against the camera profile. Original settings and attribution stay attached. |
+```mermaid
+flowchart TD
+  subgraph Browser
+    UI["Single-page UI · app/ and components/<br/>Upload, preview and camera selection"]
+    Resize["lib/resize-image.ts<br/>Validate, orient and resize to JPEG"]
+    Results["Recipe settings or explicit no-match result<br/>Creator, source, explanation and copy"]
+    Refine["lib/adaptation.ts<br/>Constrained local refinements and grain selection"]
+    UI --> Resize
+    Results --> Refine
+    Refine --> Results
+  end
+
+  subgraph Server["Next.js server · Node.js runtime"]
+    API["POST /api/recommend<br/>Validate photo and camera"]
+    Analysis["lib/analysis.ts · Sharp<br/>Palette, chroma, warmth and tonal range"]
+    Vision["lib/vision.ts · optional OpenAI<br/>Structured aesthetic tags and description"]
+    Catalog["lib/catalog.ts<br/>Configured catalog adapter"]
+    Fixtures["lib/fixtures.ts<br/>Five labeled development recipes · default"]
+    Supabase["Supabase Data API · optional<br/>Normalized PostgreSQL schema<br/>supabase/migrations/"]
+    Match["lib/matching.ts<br/>Filter compatibility and color mode<br/>Weighted feature and tag similarity"]
+    Camera["lib/camera.ts · X-T2 capability registry<br/>Strict setting names, ranges and allowed values"]
+    API --> Analysis
+    Analysis -. "ANALYSIS_MODE=openai" .-> Vision
+    Analysis --> Match
+    Vision --> Match
+    API --> Catalog
+    Fixtures --> Catalog
+    Supabase --> Catalog
+    Catalog --> Match
+    Camera --> Match
+  end
+
+  Resize -->|"Prepared JPEG + camera"| API
+  Match -->|"Validated recipe or no match"| Results
+  Camera --> Refine
+```
+
+Analysis and catalog modes are independent: pixel analysis and local fixtures work without credentials. Vision adds tags and a description to the measured features; it does not freely generate camera settings. Retrieval uses weighted differences and tag overlap, with no vector database. Refinements run in the browser and preserve the original settings and attribution. Photos are processed in memory, not persisted by the application.
 
 `POST /api/recommend` accepts multipart fields `photo` and `camera` (currently `x-t2`). A successful response contains `analysis`, `catalog` and a validated `recipe`, or a null recipe with a reason. Invalid requests return 400 or 413. Configured upstream failures return 503. Refinement needs no network endpoint or repeat upload.
 

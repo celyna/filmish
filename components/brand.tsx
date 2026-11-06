@@ -3,15 +3,59 @@
 import { useEffect, useRef, type PointerEvent } from "react";
 
 export function Wordmark() {
-  return <h1 className="wordmark">filmish<span className="typing-cursor" aria-hidden="true" /></h1>;
+  return <header className="brand">
+    <h1 className="wordmark">film<em>ish</em><span className="typing-cursor" aria-hidden="true" /></h1>
+    <p className="tagline">turn photo inspo into a fujifilm recipe</p>
+  </header>;
+}
+
+function ClipMaterial({ id }: { id: string }) {
+  return <defs>
+    <linearGradient id={id} x1="0" y1="0" x2="1" y2="0">
+      <stop stopColor="#a7967e" />
+      <stop offset=".4" stopColor="#f4eee4" />
+      <stop offset=".7" stopColor="#d9cbb6" />
+      <stop offset="1" stopColor="#96836b" />
+    </linearGradient>
+  </defs>;
+}
+
+function FilmMaterial({ id }: { id: string }) {
+  return (
+    <defs>
+      <linearGradient id={`${id}-base`} x1="0" y1="0" x2="1" y2="1">
+        <stop stopColor="#b77a49" stopOpacity=".8" />
+        <stop offset=".2" stopColor="#754224" stopOpacity=".86" />
+        <stop offset=".65" stopColor="#9b5d32" stopOpacity=".8" />
+        <stop offset="1" stopColor="#60371f" stopOpacity=".9" />
+      </linearGradient>
+      <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="1">
+        <stop stopColor="#edcfaa" stopOpacity=".82" />
+        <stop offset=".5" stopColor="#fbefda" stopOpacity=".9" />
+        <stop offset="1" stopColor="#d7ac78" stopOpacity=".78" />
+      </linearGradient>
+      <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="1" y2=".35">
+        <stop stopColor="white" stopOpacity=".02" />
+        <stop offset=".38" stopColor="white" stopOpacity=".02" />
+        <stop offset=".5" stopColor="white" stopOpacity=".23" />
+        <stop offset=".62" stopColor="white" stopOpacity=".03" />
+        <stop offset="1" stopColor="white" stopOpacity="0" />
+      </linearGradient>
+      <filter id={`${id}-shadow`} x="-30%" y="-20%" width="170%" height="160%">
+        <feDropShadow dx="2" dy="5" stdDeviation="3" floodColor="#5b321d" floodOpacity=".14" />
+      </filter>
+    </defs>
+  );
 }
 
 function Clip({ className }: { className: string }) {
+  const materialId = className.includes("left") ? "left-clip-metal" : "right-clip-metal";
   return (
     <svg className={className} viewBox="0 0 20 42" fill="none" aria-hidden="true">
-      <path d="M6 3 Q10 1 14 3 L13 36 Q10 40 6 36 Z" fill="var(--paper)" stroke="currentColor" strokeWidth="1.1" />
-      <path d="M10 4 L9 15 M9 24 L9 35 M5 20 L14 20" stroke="currentColor" strokeWidth="1" />
-      <circle cx="9.5" cy="20" r="3" fill="var(--paper)" stroke="currentColor" />
+      <ClipMaterial id={materialId} />
+      <path d="M6 3 Q10 1 14 3 L13 36 Q10 40 6 36 Z" fill={`url(#${materialId})`} stroke="#776855" strokeWidth=".85" />
+      <path d="M10 4 L9 15 M9 24 L9 35 M5 20 L14 20" stroke="#776855" strokeWidth=".7" />
+      <circle cx="9.5" cy="20" r="3" fill="#e8dece" stroke="#776855" strokeWidth=".8" />
     </svg>
   );
 }
@@ -107,27 +151,40 @@ function HangingStrip({ side, frames }: { side: "left" | "right"; frames: number
       onPointerLeave={reset} onPointerCancel={reset}
       onClick={event => { event.preventDefault(); event.stopPropagation(); }}>
       <svg viewBox="0 0 110 380" preserveAspectRatio="none" fill="none">
-        <g ref={film}>
+        <FilmMaterial id={side} />
+        <defs>
+          <mask id={`${side}-perforations`} maskUnits="userSpaceOnUse" x="0" y="0" width="110" height="380">
+            <path d="M16 15 Q55 13 94 16 L94 369 Q55 371 16 368 Z" fill="white" />
+            {Array.from({ length: 20 }, (_, index) => 22 + index * 17).map(y => (
+              <g key={y} fill="black">
+                <rect x="21" y={y} width="6" height="9" rx="1.2" />
+                <rect x="83" y={y} width="6" height="9" rx="1.2" />
+              </g>
+            ))}
+          </mask>
+        </defs>
+        <g ref={film} filter={`url(#${side}-shadow)`}>
           <path d="M16 15 Q55 13 94 16 L94 369 Q55 371 16 368 Z"
-            fill="var(--paper)" stroke="currentColor" strokeWidth="1" />
-          {Array.from({ length: 20 }, (_, index) => 22 + index * 17).map(y => (
-            <g key={y} stroke="currentColor" strokeWidth=".7" opacity=".6">
-              <rect x="21" y={y} width="6" height="9" rx="1.2" />
-              <rect x="83" y={y} width="6" height="9" rx="1.2" />
-            </g>
-          ))}
+            fill={`url(#${side}-base)`} mask={`url(#${side}-perforations)`} />
+          <path d="M17 17 Q55 15 92 17 M17 18 L17 367 M93 19 L93 367"
+            stroke="white" strokeOpacity=".3" strokeWidth=".65" />
           {Array.from({ length: frames }, (_, index) => {
             const height = 330 / frames;
             const top = 26 + index * height;
             return (
               <g key={index}>
                 <rect x="33" y={top} width="44" height={height - 12}
-                  fill={index % 2 === 0 ? "#f6f6f6" : "#fcfcfc"} stroke="currentColor" strokeWidth=".65" />
+                  fill={`url(#${side}-glass)`} stroke="#925b36" strokeOpacity=".45" strokeWidth=".65" />
+                <path d={`M34 ${top + 1} H76`} stroke="white" strokeOpacity=".7" strokeWidth=".6" />
                 <DoodleScene scene={side === "left" ? index + 1 : index + 4}
                   x={35} y={top + 4} width={40} height={height - 20} />
+                <text x="30" y={top + height - 5} fill="#dadad2" fontSize="4.5" fontFamily="monospace"
+                  letterSpacing=".8">{String(index + 1).padStart(2, "0")} ▷</text>
               </g>
             );
           })}
+          <path d="M16 15 Q55 13 94 16 L94 369 Q55 371 16 368 Z"
+            fill={`url(#${side}-sheen)`} mask={`url(#${side}-perforations)`} />
         </g>
       </svg>
     </span>
@@ -155,25 +212,39 @@ export function FrameIllustration() {
       onPointerLeave={reset} onPointerCancel={reset}>
 
       <svg className="frame-illustration" viewBox="0 0 320 285" fill="none">
+        <FilmMaterial id="center-film" />
+        <ClipMaterial id="center-clip-metal" />
+        <defs>
+          <mask id="center-film-perforations" maskUnits="userSpaceOnUse" x="50" y="40" width="255" height="180">
+            <path d="M60 52 Q174 50 291 53 L292 207 Q176 210 60 207 Z" fill="white" />
+            {[74, 99, 124, 149, 174, 199, 224, 249, 274].map(x => (
+              <g key={x} fill="black">
+                <rect x={x} y="59" width="11" height="8" rx="1.8" />
+                <rect x={x} y="193" width="11" height="8" rx="1.8" />
+              </g>
+            ))}
+          </mask>
+        </defs>
         <g className="center-film-placement">
           <g transform="rotate(-8 110 45)">
-            <g ref={film}>
+            <g ref={film} filter="url(#center-film-shadow)">
               <path d="M60 52 Q174 50 291 53 L292 207 Q176 210 60 207 Z"
-                fill="var(--paper)" stroke="currentColor" strokeWidth="1.15" />
-              {[74, 99, 124, 149, 174, 199, 224, 249, 274].map(x => (
-                <g key={x} stroke="currentColor" strokeWidth=".75" opacity=".65">
-                  <rect x={x} y="59" width="11" height="8" rx="1.8" />
-                  <rect x={x} y="193" width="11" height="8" rx="1.8" />
-                </g>
-              ))}
+                fill="url(#center-film-base)" mask="url(#center-film-perforations)" />
+              <path d="M62 54 Q174 52 289 55 M62 55 L62 204 M290 56 L291 205"
+                stroke="white" strokeOpacity=".34" strokeWidth=".75" />
               <path d="M76 76 Q176 74 277 77 L277 184 Q176 186 76 183 Z"
-                fill="#fafafa" stroke="currentColor" strokeWidth=".85" />
+                fill="url(#center-film-glass)" stroke="#925b36" strokeOpacity=".45" strokeWidth=".8" />
+              <path d="M78 78 Q176 76 275 79" stroke="white" strokeOpacity=".8" strokeWidth=".8" />
               <DoodleScene scene={0} x={83} y={81} width={187} height={99} />
+              <path d="M60 52 Q174 50 291 53 L292 207 Q176 210 60 207 Z"
+                fill="url(#center-film-sheen)" mask="url(#center-film-perforations)" />
+              <text x="64" y="133" transform="rotate(-90 64 133)" fill="#dadad2"
+                fontSize="4" fontFamily="monospace" letterSpacing="1.1">filmish 35</text>
             </g>
             <path d="M107 32 Q110 30 114 32 L113 76 Q110 79 107 76 Z"
-              fill="var(--paper)" stroke="currentColor" strokeWidth="1" />
-            <path d="M110 34 L110 43 M110 52 L110 74" stroke="currentColor" strokeWidth=".7" />
-            <circle cx="110" cy="48" r="2.5" fill="var(--paper)" stroke="currentColor" strokeWidth=".85" />
+              fill="url(#center-clip-metal)" stroke="#776855" strokeWidth=".85" />
+            <path d="M110 34 L110 43 M110 52 L110 74" stroke="#776855" strokeWidth=".7" />
+            <circle cx="110" cy="48" r="2.5" fill="#e8dece" stroke="#776855" strokeWidth=".8" />
           </g>
         </g>
       </svg>

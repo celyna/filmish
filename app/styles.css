@@ -23,8 +23,10 @@ main { width: min(100% - 2.5rem, 37rem); margin: 0 auto; padding: clamp(3rem, 9v
   font: 400 clamp(2.8rem, 10vw, 3.7rem)/1.2 "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
   letter-spacing: -.035em;
   text-align: center;
-  margin: 0 auto clamp(2.6rem, 8vh, 5.5rem);
+  margin: 0 auto;
 }
+.brand { text-align: center; margin-bottom: clamp(2.6rem, 8vh, 5.5rem); }
+.tagline { margin: .75rem auto 0; font: .95rem/1.5 var(--body-serif); text-transform: lowercase; }
 .typing-cursor {
   position: absolute;
   top: .19em;
@@ -37,7 +39,7 @@ main { width: min(100% - 2.5rem, 37rem); margin: 0 auto; padding: clamp(3rem, 9v
 @keyframes cursor-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .typing-cursor { animation: none; } }
 main:has(.upload) { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; padding-block: 3rem; }
-main:has(.upload) .wordmark { margin-bottom: clamp(2.2rem, 6vh, 4rem); }
+main:has(.upload) .brand { margin-bottom: clamp(2.2rem, 6vh, 4rem); }
 button, select { font: inherit; color: inherit; }
 button, select, option, input, textarea { text-transform: lowercase; }
 button { cursor: pointer; }
@@ -58,17 +60,17 @@ button:disabled { cursor: default; opacity: .58; }
 .outer-strip-left { top: 7px; left: 18%; transform: translateX(-50%); }
 .outer-strip-right { top: 49px; left: 82%; transform: translateX(-50%); height: clamp(320px, 39vw, 395px); }
 .outer-strip > svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.frame-illustration { position: relative; display: block; width: 100%; color: inherit; transition: color .2s; }
+.frame-illustration { position: relative; display: block; width: 100%; overflow: visible; color: inherit; transition: color .2s; }
+.center-film-placement { transform: translateX(-26px); }
 .upload-title {
   display: block;
-  padding: .8rem 1.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--ink);
+  padding: .5rem 1rem;
   background: transparent;
   color: var(--ink);
-  font: 400 .9rem/1.4 Arial, Helvetica, sans-serif;
+  font: 400 1.35rem/1.4 "Baskerville", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  letter-spacing: -.035em;
 }
-.upload:hover .upload-title, .upload.dragging .upload-title { background: #f3f3f3; }
+.upload:hover .upload-title, .upload.dragging .upload-title { text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 1px; }
 .upload-note, .note, .status { color: var(--muted); font: .8rem/1.65 var(--body-serif); }
 .upload-note { margin-top: .75rem; color: var(--ink); font: 400 .7rem/1.5 Arial, Helvetica, sans-serif; }
 .studio:has(.photo) { padding-top: 60px; }
@@ -77,7 +79,7 @@ button:disabled { cursor: default; opacity: .58; }
 .studio:has(.photo) .line-clip-left { top: -30px; left: calc(4% - 7px); }
 .studio:has(.photo) .line-clip-right { top: 31px; right: calc(4% - 7px); }
 .photo { position: relative; width: min(100% - 2.5rem, 30rem); margin: 0 auto; padding: .65rem .65rem .35rem; background: var(--paper); border: 1px solid var(--rule); view-transition-name: film-preview; }
-.photo::before { content: ""; position: absolute; z-index: 1; top: -15px; left: calc(50% - 4px); width: 7px; height: 40px; border: 1px solid var(--ink); border-radius: 2px; background: var(--paper); transform: rotate(7deg); }
+.photo::before { content: ""; position: absolute; z-index: 1; top: -15px; left: calc(50% - 4px); width: 7px; height: 40px; border: 1px solid #776855; border-radius: 2px; background: linear-gradient(90deg, #a7967e, #f4eee4 40%, #d9cbb6 70%, #96836b); transform: rotate(7deg); }
 .photo img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: contain; background: #f5f5f5; }
 figcaption { display: flex; justify-content: space-between; align-items: center; gap: .75rem; padding: .75rem .25rem .35rem; }
 .eyebrow { display: block; color: var(--accent); font: 400 .75rem/1.4 var(--body-serif); letter-spacing: .095em; }
@@ -92,7 +94,7 @@ figcaption { display: flex; justify-content: space-between; align-items: center;
 }
 .camera-controls { display: grid; gap: .6rem; margin-top: .6rem; }
 select, .primary, .secondary, .text-button { min-height: 44px; font: 400 .85rem/1.5 Arial, Helvetica, sans-serif; }
-select, .primary, .secondary { border: 1px solid var(--ink); border-radius: 999px; padding: .55rem .8rem; }
+select, .primary, .secondary { border: 1px solid var(--ink); border-radius: 3px; padding: .55rem .8rem; }
 select {
   appearance: none;
   padding-right: 2.75rem;
@@ -105,7 +107,7 @@ select {
 .primary span { margin-left: .3rem; }
 .secondary { background: transparent; }
 .primary:hover:not(:disabled), .secondary:hover:not(:disabled), .text-button:hover, a:hover { background: #f3f3f3; }
-.text-button { padding: .45rem .8rem; color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; background: transparent; }
+.text-button { padding: .45rem .8rem; color: var(--ink); border: 1px solid var(--ink); border-radius: 3px; background: transparent; }
 .results { border-top: 1px solid var(--rule); padding-top: 1.2rem; }
 .results p { margin: .55rem 0; }
 .palette { display: flex; gap: .35rem; padding: 0; margin: .65rem 0; list-style: none; }
@@ -113,7 +115,7 @@ select {
 .recipe-heading { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; align-items: end; margin-top: 1.7rem; }
 h2 { font-size: clamp(1.9rem, 6vw, 2.5rem); line-height: 1.05; font-weight: 400; margin: .35rem 0 0; }
 h3 { font-size: 1.14rem; font-weight: 400; margin: 1.4rem 0 .2rem; }
-a { display: inline-block; padding: .25rem .65rem; color: var(--ink); border: 1px solid var(--ink); border-radius: 999px; font: .75rem/1.5 Arial, Helvetica, sans-serif; text-decoration: none; }
+a { display: inline-block; padding: .25rem .65rem; color: var(--ink); border: 1px solid var(--ink); border-radius: 3px; font: .75rem/1.5 Arial, Helvetica, sans-serif; text-decoration: none; }
 .settings { margin: 1rem 0; border-top: 1px solid var(--rule); }
 .settings div { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; padding: .45rem 0; border-bottom: 1px solid var(--rule); }
 dt { color: var(--muted); }
@@ -131,5 +133,4 @@ dd { margin: 0; text-align: right; font: .9rem/1.85 var(--body-serif); }
 @media (min-width: 35rem) { .camera-controls { grid-template-columns: 1fr auto; } }
 @media (width < 660px) {
   .outer-strip, .line-clip { display: none; }
-  .center-film-placement { transform: translateX(-26px); }
 }
