@@ -4,7 +4,7 @@ import { useEffect, useRef, type PointerEvent } from "react";
 
 export function Wordmark() {
   return <header className="brand">
-    <h1 className="wordmark">film<em>ish</em><span className="typing-cursor" aria-hidden="true" /></h1>
+    <h1 className="wordmark">film<em>ish</em></h1>
     <p className="tagline">turn photo inspo into a fujifilm recipe</p>
   </header>;
 }
@@ -24,15 +24,15 @@ function FilmMaterial({ id }: { id: string }) {
   return (
     <defs>
       <linearGradient id={`${id}-base`} x1="0" y1="0" x2="1" y2="1">
-        <stop stopColor="#b77a49" stopOpacity=".8" />
-        <stop offset=".2" stopColor="#754224" stopOpacity=".86" />
-        <stop offset=".65" stopColor="#9b5d32" stopOpacity=".8" />
-        <stop offset="1" stopColor="#60371f" stopOpacity=".9" />
+        <stop stopColor="#303030" stopOpacity=".98" />
+        <stop offset=".2" stopColor="#111111" stopOpacity=".98" />
+        <stop offset=".65" stopColor="#242424" stopOpacity=".98" />
+        <stop offset="1" stopColor="#080808" stopOpacity=".99" />
       </linearGradient>
       <linearGradient id={`${id}-glass`} x1="0" y1="0" x2="1" y2="1">
-        <stop stopColor="#edcfaa" stopOpacity=".82" />
-        <stop offset=".5" stopColor="#fbefda" stopOpacity=".9" />
-        <stop offset="1" stopColor="#d7ac78" stopOpacity=".78" />
+        <stop stopColor="#d5d5d5" stopOpacity=".82" />
+        <stop offset=".5" stopColor="#f5f5f5" stopOpacity=".9" />
+        <stop offset="1" stopColor="#bababa" stopOpacity=".78" />
       </linearGradient>
       <linearGradient id={`${id}-sheen`} x1="0" y1="0" x2="1" y2=".35">
         <stop stopColor="white" stopOpacity=".02" />
@@ -42,45 +42,26 @@ function FilmMaterial({ id }: { id: string }) {
         <stop offset="1" stopColor="white" stopOpacity="0" />
       </linearGradient>
       <filter id={`${id}-shadow`} x="-30%" y="-20%" width="170%" height="160%">
-        <feDropShadow dx="2" dy="5" stdDeviation="3" floodColor="#5b321d" floodOpacity=".14" />
+        <feDropShadow dx="2" dy="5" stdDeviation="3" floodColor="#151515" floodOpacity=".14" />
       </filter>
     </defs>
   );
 }
 
-function Clip({ className }: { className: string }) {
-  const materialId = className.includes("left") ? "left-clip-metal" : "right-clip-metal";
-  return (
-    <svg className={className} viewBox="0 0 20 42" fill="none" aria-hidden="true">
-      <ClipMaterial id={materialId} />
-      <path d="M6 3 Q10 1 14 3 L13 36 Q10 40 6 36 Z" fill={`url(#${materialId})`} stroke="#776855" strokeWidth=".85" />
-      <path d="M10 4 L9 15 M9 24 L9 35 M5 20 L14 20" stroke="#776855" strokeWidth=".7" />
-      <circle cx="9.5" cy="20" r="3" fill="#e8dece" stroke="#776855" strokeWidth=".8" />
-    </svg>
-  );
-}
-
-function DoodleScene({ scene, x, y, width, height }: {
-  scene: number; x: number; y: number; width: number; height: number;
+function DoodleScene({ x, y, width, height }: {
+  x: number; y: number; width: number; height: number;
 }) {
-  const bounds = [
-    [16, 170, 352, 280], [464, 170, 250, 300],
-    [800, 155, 310, 310], [1180, 115, 340, 340],
-    [16, 650, 352, 270], [460, 650, 260, 300],
-    [780, 550, 350, 390], [1170, 670, 340, 260],
-  ];
-  const photoshoot = scene === 0;
-  const [left, top, sceneWidth, sceneHeight] = photoshoot ? [100, 270, 1050, 720] : bounds[scene];
+  const [left, top, sceneWidth, sceneHeight] = [100, 270, 1050, 720];
   return (
     <svg x={x} y={y} width={width} height={height}
       viewBox={`0 0 ${sceneWidth} ${sceneHeight}`}
       preserveAspectRatio="xMidYMid meet" overflow="hidden">
       <defs>
-        <clipPath id={`doodle-scene-${scene}`}><rect width={sceneWidth} height={sceneHeight} /></clipPath>
+        <clipPath id="center-doodle-scene"><rect width={sceneWidth} height={sceneHeight} /></clipPath>
       </defs>
-      <g clipPath={`url(#doodle-scene-${scene})`}>
-        <image href={photoshoot ? "/art/filmish-photoshoot-v4.png" : "/art/filmish-doodle-activities.png"}
-          x={-left} y={-top} width={photoshoot ? 1254 : 1536} height={photoshoot ? 1254 : 1024} />
+      <g clipPath="url(#center-doodle-scene)">
+        <image href="/art/filmish-photoshoot-v4.png"
+          x={-left} y={-top} width="1254" height="1254" />
       </g>
     </svg>
   );
@@ -144,63 +125,12 @@ function useFilmSwing(pivotX: number, pivotY: number) {
   return { film, followPointer, reset: () => moveTo(0) };
 }
 
-function HangingStrip({ side, frames }: { side: "left" | "right"; frames: number }) {
-  const { film, followPointer, reset } = useFilmSwing(55, 12);
-  return (
-    <span className={`outer-strip outer-strip-${side}`} onPointerMove={followPointer}
-      onPointerLeave={reset} onPointerCancel={reset}
-      onClick={event => { event.preventDefault(); event.stopPropagation(); }}>
-      <svg viewBox="0 0 110 380" preserveAspectRatio="none" fill="none">
-        <FilmMaterial id={side} />
-        <defs>
-          <mask id={`${side}-perforations`} maskUnits="userSpaceOnUse" x="0" y="0" width="110" height="380">
-            <path d="M16 15 Q55 13 94 16 L94 369 Q55 371 16 368 Z" fill="white" />
-            {Array.from({ length: 20 }, (_, index) => 22 + index * 17).map(y => (
-              <g key={y} fill="black">
-                <rect x="21" y={y} width="6" height="9" rx="1.2" />
-                <rect x="83" y={y} width="6" height="9" rx="1.2" />
-              </g>
-            ))}
-          </mask>
-        </defs>
-        <g ref={film} filter={`url(#${side}-shadow)`}>
-          <path d="M16 15 Q55 13 94 16 L94 369 Q55 371 16 368 Z"
-            fill={`url(#${side}-base)`} mask={`url(#${side}-perforations)`} />
-          <path d="M17 17 Q55 15 92 17 M17 18 L17 367 M93 19 L93 367"
-            stroke="white" strokeOpacity=".3" strokeWidth=".65" />
-          {Array.from({ length: frames }, (_, index) => {
-            const height = 330 / frames;
-            const top = 26 + index * height;
-            return (
-              <g key={index}>
-                <rect x="33" y={top} width="44" height={height - 12}
-                  fill={`url(#${side}-glass)`} stroke="#925b36" strokeOpacity=".45" strokeWidth=".65" />
-                <path d={`M34 ${top + 1} H76`} stroke="white" strokeOpacity=".7" strokeWidth=".6" />
-                <DoodleScene scene={side === "left" ? index + 1 : index + 4}
-                  x={35} y={top + 4} width={40} height={height - 20} />
-                <text x="30" y={top + height - 5} fill="#dadad2" fontSize="4.5" fontFamily="monospace"
-                  letterSpacing=".8">{String(index + 1).padStart(2, "0")} ▷</text>
-              </g>
-            );
-          })}
-          <path d="M16 15 Q55 13 94 16 L94 369 Q55 371 16 368 Z"
-            fill={`url(#${side}-sheen)`} mask={`url(#${side}-perforations)`} />
-        </g>
-      </svg>
-    </span>
-  );
-}
-
 export function Clothesline() {
   return (
       <span className="clothesline" aria-hidden="true">
         <svg viewBox="0 0 1440 90" preserveAspectRatio="none" fill="none">
           <path d="M-20 -30 Q620 105 1460 40" stroke="currentColor" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
         </svg>
-        <HangingStrip side="left" frames={3} />
-        <HangingStrip side="right" frames={4} />
-        <Clip className="line-clip line-clip-left" />
-        <Clip className="line-clip line-clip-right" />
       </span>
   );
 }
@@ -233,9 +163,9 @@ export function FrameIllustration() {
               <path d="M62 54 Q174 52 289 55 M62 55 L62 204 M290 56 L291 205"
                 stroke="white" strokeOpacity=".34" strokeWidth=".75" />
               <path d="M76 76 Q176 74 277 77 L277 184 Q176 186 76 183 Z"
-                fill="url(#center-film-glass)" stroke="#925b36" strokeOpacity=".45" strokeWidth=".8" />
+                fill="url(#center-film-glass)" stroke="#5a5a5a" strokeOpacity=".45" strokeWidth=".8" />
               <path d="M78 78 Q176 76 275 79" stroke="white" strokeOpacity=".8" strokeWidth=".8" />
-              <DoodleScene scene={0} x={83} y={81} width={187} height={99} />
+              <DoodleScene x={83} y={81} width={187} height={99} />
               <path d="M60 52 Q174 50 291 53 L292 207 Q176 210 60 207 Z"
                 fill="url(#center-film-sheen)" mask="url(#center-film-perforations)" />
               <text x="64" y="133" transform="rotate(-90 64 133)" fill="#dadad2"

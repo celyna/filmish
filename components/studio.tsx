@@ -2,32 +2,27 @@
 
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
-import { cameras, grainEffects, settingRows, type CameraId } from "@/lib/camera";
-import { changesFrom, feedbackOptions, refine, type Feedback } from "@/lib/adaptation";
-import type { RecommendationResult } from "@/lib/recipe";
+import type { PhotoRecommendation } from "@/lib/open-fuji";
 import { imageTypes } from "@/lib/upload";
 import { resizeImage } from "@/lib/resize-image";
 import { Clothesline, FrameIllustration } from "./brand";
 
 type Photo = { file: File; url: string; width: number; height: number };
 
-export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
+export function Studio() {
   const input = useRef<HTMLInputElement>(null);
   const uploadButton = useRef<HTMLButtonElement>(null);
   const request = useRef<AbortController | null>(null);
   const selection = useRef(0);
   const [photo, setPhoto] = useState<Photo | null>(null);
-  const [camera, setCamera] = useState<CameraId>("x-t2");
-  const [result, setResult] = useState<RecommendationResult | null>(null);
-  const [revised, setRevised] = useState<ReturnType<typeof refine> | null>(null);
+  const [result, setResult] = useState<PhotoRecommendation | null>(null);
+  const [activeRecipe, setActiveRecipe] = useState(0);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [preparing, setPreparing] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const recipe = result?.recipe;
-  const settings = revised ?? recipe?.settings;
-  const changes = recipe && settings ? changesFrom(recipe.settings, settings) : [];
+  const recipe = result?.recipes[activeRecipe];
 
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
   useEffect(() => () => { request.current?.abort(); selection.current++; }, []);
@@ -39,9 +34,8 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
     const reset = () => {
       flushSync(() => {
         setPhoto(null);
-        setCamera("x-t2");
         setResult(null);
-        setRevised(null);
+        setActiveRecipe(0);
         setError("");
         setStatus("");
         setLoading(false);
@@ -63,12 +57,13 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
     if (!file) return;
     const currentSelection = ++selection.current;
     request.current?.abort();
+    request.current = null;
     setLoading(false);
     setPreparing(true);
     setError("");
     setStatus("");
     setResult(null);
-    setRevised(null);
+    setActiveRecipe(0);
     try {
       const resized = await resizeImage(file);
       if (currentSelection !== selection.current) return;
@@ -89,6 +84,7 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
       } else {
         reveal();
       }
+      if (currentSelection === selection.current) void recommend(nextPhoto);
     } catch (error) {
       if (currentSelection === selection.current) {
         setError(error instanceof Error ? error.message : "The photo could not be prepared.");
@@ -98,26 +94,24 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
     }
   }
 
-  async function recommend() {
-    if (!photo || preparing) return;
+  async function recommend(reference: Photo) {
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
     setLoading(true);
     setResult(null);
-    setRevised(null);
+    setActiveRecipe(0);
     setError("");
     setStatus("");
     const form = new FormData();
-    form.set("photo", photo.file);
-    form.set("camera", camera);
+    form.set("photo", reference.file);
     try {
       const response = await fetch("/api/recommend", { method: "POST", body: form, signal: controller.signal });
       const data = await response.json().catch(() => null);
       if (!response.ok || !data) throw new Error(data?.error ?? "The request failed. Try again.");
       if (!controller.signal.aborted) {
         setResult(data);
-        setStatus(data.recipe ? "Recipe ready." : "Analysis complete. No close match found.");
+        setStatus(data.recipes.length ? "Recipe ready." : "Analysis complete. No close match found.");
       }
     } catch (error) {
       if (!controller.signal.aborted) setError(error instanceof Error ? error.message : "The request failed.");
@@ -126,18 +120,10 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
     }
   }
 
-  function adjust(feedback: Feedback) {
-    if (!settings) return;
-    const next = refine(camera, settings, feedback);
-    setRevised(next);
-    setStatus(changesFrom(settings, next).length ? `${feedbackOptions[feedback]} applied.` : "Already at the camera’s limit.");
-  }
-
   async function copy() {
-    if (!recipe || !settings) return;
-    const lines = [recipe.name, cameras[camera].name, `Original recipe by ${recipe.creator}`,
-      recipe.sourceUrl, "", ...settingRows(settings).map(([key, value]) => `${key}: ${value}`),
-      ...(changes.length ? ["", "filmish. adjustments", ...changes.map(change => `${change.label}: ${change.original} → ${change.value}`)] : [])];
+    if (!recipe) return;
+    const lines = [recipe.name, recipe.generation, `Original recipe by ${recipe.creator}`,
+      recipe.sourceUrl, "", ...recipe.settings.map(([key, value]) => `${key}: ${value}`)];
     try {
       await navigator.clipboard.writeText(lines.filter(line => line !== null).join("\n"));
       setStatus("Recipe copied.");
@@ -172,71 +158,38 @@ export function Studio({ visionEnabled }: { visionEnabled: boolean }) {
           <span className="upload-note">JPEG, PNG or WebP · up to 30 MB · resized automatically</span>
         </button>
       )}
-      {photo && (
-        <section className="camera-panel" aria-label="Camera and analysis">
-          <label className="eyebrow" htmlFor="camera">02 / Camera</label>
-          <div className="camera-controls">
-            <select id="camera" value={camera} disabled={loading || preparing}
-              onChange={event => { setCamera(event.target.value as CameraId); setResult(null); setRevised(null); setError(""); setStatus(""); }}>
-              {Object.entries(cameras).map(([id, profile]) => <option key={id} value={id}>{profile.name}</option>)}
-            </select>
-            <button className="primary" disabled={loading || preparing} onClick={recommend}>
-              {loading ? "Reading photo…" : "Find a recipe"} <span aria-hidden="true">↗</span>
-            </button>
-          </div>
-          {visionEnabled && <p className="note">Find a recipe sends a resized copy of your photo to OpenAI for vision analysis.</p>}
-        </section>
-      )}
       {error && <p role="alert" className="error">{error}</p>}
+      {error && photo && !preparing && !loading && <button className="secondary" onClick={() => recommend(photo)}>Try again</button>}
       {preparing && <p className="note preparing" role="status">Preparing your photo…</p>}
-      {loading && <p className="note" role="status">Analyzing color and tones, then checking camera compatibility.</p>}
+      {loading && <p className="note" role="status">Reading your photo and finding recipes…</p>}
       {result && (
         <section className="results" aria-label="Analysis and recipe">
-          <div className="eyebrow">03 / Photo notes</div>
+          <div className="eyebrow">Photo notes</div>
           <ul className="palette" aria-label="Colors sampled from the photograph">
             {result.analysis.palette.map(color => <li key={color} title={color} aria-label={color} style={{ background: color }} />)}
           </ul>
           <p>{result.analysis.description}</p>
-          <p className="note">{result.analysis.mode === "pixels" ? "Pixel analysis" : "Vision AI + pixel analysis"} · {result.catalog === "fixtures" ? "Local fixture catalog" : "Supabase catalog"}</p>
-          <p className="note">Matching compares color and tones. Grain in your reference photo isn’t assessed yet.</p>
-          {!recipe && <p className="no-match">{result.reason}</p>}
-          {recipe && settings && <>
+          <p className="note">Ranked against {result.catalogSize} Open Fuji Recipes by estimated color and tones.</p>
+          {!recipe && <p className="no-match">No recipes match this photo’s color mode.</p>}
+          {recipe && <>
+            <div className="feedback" aria-label="Recipe matches">
+              {result.recipes.map((match, index) => (
+                <button key={match.id} className="secondary" aria-pressed={index === activeRecipe}
+                  onClick={() => { setActiveRecipe(index); setStatus(""); }}>{match.name}</button>
+              ))}
+            </div>
             <div className="recipe-heading">
               <div>
-                <div className="eyebrow">04 / Recipe</div>
+                <div className="eyebrow">{activeRecipe === 0 ? "Best match" : "Alternative match"}</div>
                 <h2>{recipe.name}</h2>
               </div>
               <button className="secondary" onClick={copy}>Copy recipe</button>
             </div>
-            <p className="note">{cameras[camera].name} · {recipe.creator}
-              {recipe.sourceUrl && <> · <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">Original source ↗</a></>}
-            </p>
-            <p>{recipe.explanation}</p>
+            <p className="note">{recipe.generation} · {recipe.creator} · <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">Catalog entry ↗</a></p>
+            <p className="note">Check your camera’s settings before applying this recipe.</p>
             <dl className="settings">
-              {settingRows(settings).map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}
+              {recipe.settings.map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}
             </dl>
-            {settings.dynamicRange === "DR200" && <p className="note">DR200 requires ISO 400 or higher.</p>}
-            {settings.dynamicRange === "DR400" && <p className="note">DR400 requires ISO 800 or higher.</p>}
-            <h3>filmish. adjustments</h3>
-            {changes.length ? <ul className="changes">{changes.map(change =>
-              <li key={change.label}>{change.label} <span>{change.original} → {change.value}</span></li>)}</ul>
-              : <p className="note">Using the original settings.</p>}
-            <div className="grain-control">
-              <label htmlFor="grain-effect">Grain effect</label>
-              <select id="grain-effect" value={settings.grain} onChange={event => {
-                setRevised(cameras[camera].settings.parse({ ...settings, grain: event.target.value }));
-                setStatus("Grain preference applied.");
-              }}>
-                {grainEffects.map(grain => <option key={grain} value={grain}>{grain}</option>)}
-              </select>
-            </div>
-            <p className="note">Starts with the base recipe’s grain setting. Choose the amount you prefer.</p>
-            <div className="feedback" aria-label="Refine recipe">
-              {Object.entries(feedbackOptions).map(([id, label]) => <button key={id} className="secondary"
-                disabled={settings.color === null && ["vivid", "muted"].includes(id)}
-                onClick={() => adjust(id as Feedback)}>{label}</button>)}
-              {changes.length > 0 && <button className="text-button" onClick={() => { setRevised(null); setStatus("Original settings restored."); }}>Reset</button>}
-            </div>
           </>}
         </section>
       )}

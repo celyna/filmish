@@ -77,3 +77,7 @@ export async function analyze(bytes: Buffer): Promise<Analysis> {
   return { mode, palette: measured.palette, description: vision.description,
     profile: { ...measured.profile, tags: [...new Set([...measured.profile.tags, ...vision.profile.tags])] } };
 }
+
+export async function analyzePixels(bytes: Buffer): Promise<Analysis> {
+  return { ...await measure(await prepareImage(bytes)), mode: "pixels" };
+}

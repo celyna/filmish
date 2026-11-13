@@ -31,7 +31,7 @@ export type Recommendation = Omit<CatalogRecipe, "profile" | "settings"> & {
 };
 export type RecommendationResult = {
   analysis: Analysis;
-  catalog: "fixtures" | "supabase";
+  catalog: "fixtures" | "supabase" | "open-fuji";
   recipe: Recommendation | null;
   reason?: string;
 };

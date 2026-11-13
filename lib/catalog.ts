@@ -1,5 +1,6 @@
 import { z } from "zod";
-import type { CameraId } from "./camera";
+import { readFile } from "node:fs/promises";
+import { cameraId, cameras, type CameraId } from "./camera";
 import { fixtures } from "./fixtures";
 import { profileSchema, type RecommendationResult } from "./recipe";
 
@@ -12,15 +13,47 @@ const catalogRow = z.object({
   profile: profileSchema,
 });
 
+const openFujiExport = z.strictObject({
+  permissionBasis: z.string().trim().min(1),
+  recipes: z.array(z.strictObject({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    creator: z.string().min(1),
+    sourceUrl: z.url({ protocol: /^https?$/ }),
+    camera: cameraId,
+    settings: z.unknown(),
+    profile: profileSchema,
+  })).min(1),
+});
+
+async function loadOpenFujiExport(camera: CameraId) {
+  const path = process.env.OPEN_FUJI_EXPORT_PATH;
+  if (!path) throw new Error("The Open Fuji Recipes catalog needs an authorized export file.");
+  try {
+    const { recipes } = openFujiExport.parse(JSON.parse(await readFile(path, "utf8")));
+    const ids = new Set<string>();
+    return recipes.flatMap(({ camera: model, ...recipe }) => {
+      const key = `${model}:${recipe.id}`;
+      if (ids.has(key)) throw new Error("Duplicate recipe ID for camera.");
+      ids.add(key);
+      const settings = cameras[model].settings.parse(recipe.settings);
+      return model === camera ? [{ ...recipe, settings }] : [];
+    });
+  } catch {
+    throw new Error("The Open Fuji Recipes export could not be read or contains invalid recipe records.");
+  }
+}
+
 export function catalogMode(): RecommendationResult["catalog"] {
   const catalog = process.env.RECIPE_CATALOG ?? "fixtures";
-  if (catalog !== "fixtures" && catalog !== "supabase") throw new Error("Unknown recipe catalog.");
+  if (catalog !== "fixtures" && catalog !== "supabase" && catalog !== "open-fuji") throw new Error("Unknown recipe catalog.");
   return catalog;
 }
 
 export async function loadCatalog(camera: CameraId) {
   const catalog = catalogMode();
-  if (catalog === "fixtures") return { catalog, recipes: camera === "x-t2" ? fixtures : [] };
+  if (catalog === "fixtures") return { catalog, recipes: fixtures.filter(recipe => cameras[camera].settings.safeParse(recipe.settings).success) };
+  if (catalog === "open-fuji") return { catalog, recipes: await loadOpenFujiExport(camera) };
 
   const baseUrl = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SECRET_KEY;
