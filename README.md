@@ -1,5 +1,7 @@
 # filmish.
 
+[Try the live demo](https://filmish-two.vercel.app/)
+
 Upload a reference photo to find a Fujifilm recipe with similar color and tones. filmish shows the best match and two alternatives from Open Fuji Recipes, with the credited creator, original catalog entry, and listed sensor generation.
 
 ## Run locally
